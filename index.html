@@ -410,28 +410,37 @@
         }
 
         /* VIDEOS */
-        async function loadVideos() {
-            const res = await fetch(
-                `https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`
-            );
-            const data = await res.json();
+       const API_KEY = "AIzaSyAKIxmw8S4I9DmfKH4K90KWdUJYYwWTd1Q"; // 👈 IMPORTANTE
 
-            ["videoGrid", "homeVideos"].forEach(id => {
-                const el = document.getElementById(id);
-                el.innerHTML = "";
+async function loadVideos(pageToken = "") {
 
-                data.items.slice(0, 10).forEach(v => {
-                    const vid = v.link.split("v=")[1];
+  const url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=50${pageToken ? `&pageToken=${pageToken}` : ""}`;
 
-                    el.innerHTML += `
-        <div class="card" onclick="window.open('https://youtube.com/watch?v=${vid}')">
-          <img src="${v.thumbnail}">
-          <div class="video-title">${v.title}</div>
+  const res = await fetch(url);
+  const data = await res.json();
+
+  ["videoGrid","homeVideos"].forEach(id=>{
+    const el = document.getElementById(id);
+
+    data.items.forEach(v=>{
+      if(!v.id.videoId) return;
+
+      el.innerHTML += `
+        <div class="card" onclick="window.open('https://youtube.com/watch?v=${v.id.videoId}')">
+          <img src="${v.snippet.thumbnails.medium.url}">
+          <div class="video-title">${v.snippet.title}</div>
         </div>
       `;
-                });
-            });
-        }
+    });
+  });
+
+  // 🔥 CARGA AUTOMÁTICA DE TODOS LOS VIDEOS
+  if(data.nextPageToken){
+    loadVideos(data.nextPageToken);
+  }
+}
+
+loadVideos();
 
         loadVideos();
     </script>
