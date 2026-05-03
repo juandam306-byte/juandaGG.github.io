@@ -8,8 +8,6 @@
      <link rel="icon" type="image/png" sizes="32x32" href="logo.jpg">
     <link rel="icon" type="image/png" sizes="16x16" href="logo.jpg">
 
-    
-
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -33,6 +31,7 @@
             min-height: 100vh;
         }
 
+        /* Estilos de Navegación */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background: rgba(0, 0, 0, 0.98); backdrop-filter: blur(20px);
@@ -63,6 +62,7 @@
         .nav-item-mobile.active { color: var(--primary); }
         .nav-item-mobile svg { width: 22px; height: 22px; margin-bottom: 4px; fill: currentColor; }
 
+        /* Estilos de Página */
         .main { width: 100%; }
         
         .page { 
@@ -93,6 +93,29 @@
         .btn-kick:hover { background: var(--kick); color: #000; border-color: var(--kick); }
         .btn-yt:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
+        /* Estilos de Calendario */
+        .schedule-container {
+            margin-top: 50px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #222;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .schedule-table th, .schedule-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #222;
+        }
+        .schedule-table th { color: #888; font-family: 'Oswald'; text-transform: uppercase; font-size: 0.9rem; }
+        .tag-stream { color: var(--kick); font-weight: 700; }
+        .tag-video { color: var(--primary); font-weight: 700; }
+
+        /* Estilos de Grilla y Cards */
         .cinema-grid {
             display: grid; grid-template-columns: 1.8fr 1fr; gap: 30px; max-width: 1600px; margin: 0 auto;
         }
@@ -128,6 +151,7 @@
             }
             .hero { height: 40vh; border-radius: 15px; }
             .grid { grid-template-columns: 1fr; }
+            .schedule-table th, .schedule-table td { padding: 10px; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -176,10 +200,64 @@
                     </div>
                 </div>
             </div>
+            
             <h2 style="margin-bottom: 25px; border-left: 4px solid var(--primary); padding-left: 15px;">RECIENTES</h2>
             <div id="homeVideos" class="grid"></div>
+
+            <!-- NUEVA SECCIÓN: CALENDARIO -->
+            <div class="schedule-container">
+                <h2 style="border-left: 4px solid var(--kick); padding-left: 15px; font-family: 'Oswald';">HORARIOS SEMANAL</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Día</th>
+                            <th>Actividad</th>
+                            <th>Hora (COL)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Lunes</td>
+                            <td class="tag-stream">Video en Youtube</td>
+                            <td>2:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td>Martes</td>
+                            <td class="tag-stream">Video en Youtube</td>
+                            <td>2:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td>Miercoles</td>
+                            <td class="tag-stream">Descanso</td>
+                            <td>0:00</td>
+                        </tr>
+                        <tr>
+                            <td>Jueves</td>
+                            <td class="tag-stream">Videon en Youtube</td>
+                            <td>3:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td>Viernes</td>
+                            <td class="tag-stream">Video en YouTube</td>
+                            <td>12:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td>Sabado</td>
+                            <td class="tag-stream">Stream en Kick</td>
+                            <td>5:00 PM - 9:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td>Domingo</td>
+                            <td class="tag-stream">Video en YouTube</Video></td>
+                            <td>11:00 AM</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
         </section>
 
+        <!-- (Resto de las secciones se mantienen igual) -->
         <section id="videos" class="page">
             <div class="cinema-grid">
                 <div id="featuredPlayer" class="featured-video-player"></div>
@@ -217,7 +295,7 @@
     </main>
 
     <script>
-        const API_KEY = "AIzaSyDWTc0CtjpjiKc-Tf56yK9cC09yCqaeZUo";
+        const API_KEY = "AIzaSyA1TZkVJSEesBc1tlsfgEbFsGX54PcKam8";
         const CHANNEL_ID = "UCxyeUbu8oM-Xg_YfKGKqrFQ";
 
         function go(id, el) {
@@ -230,7 +308,6 @@
 
         async function loadVideos(pageToken = '') {
             try {
-                // Se eliminó el parámetro maxResults para cargar todo lo disponible
                 const url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&type=video&pageToken=${pageToken}`;
                 const res = await fetch(url);
                 const data = await res.json();
@@ -238,7 +315,8 @@
                 if (data.items) {
                     if (pageToken === '') {
                         const lastVid = data.items[0].id.videoId;
-                        document.getElementById('featuredPlayer').innerHTML = `<iframe src="https://www.youtube.com/embed/${lastVid}?autoplay=1&mute=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
+                        const fPlayer = document.getElementById('featuredPlayer');
+                        if(fPlayer) fPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${lastVid}?autoplay=1&mute=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
                     }
                     
                     data.items.forEach((v, i) => {
@@ -249,19 +327,25 @@
                             </div>`;
                         document.getElementById('videoGrid').innerHTML += card;
                         if (pageToken === '' && i < 6) document.getElementById('homeVideos').innerHTML += card;
-                        if (pageToken === '' && i > 0 && i < 2) document.getElementById('sideVideos').innerHTML += card;
+                        if (pageToken === '' && i > 0 && i < 2) {
+                            const sVideos = document.getElementById('sideVideos');
+                            if(sVideos) sVideos.innerHTML += card;
+                        }
                     });
 
-                    // Si hay más páginas de videos, se cargan recursivamente
                     if (data.nextPageToken) {
                         loadVideos(data.nextPageToken);
                     }
                 }
-            } catch (e) { console.log("Error loading"); }
+            } catch (e) { console.log("Error loading videos"); }
         }
 
         function changeVideo(id) {
-            document.getElementById('featuredPlayer').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
+            const fPlayer = document.getElementById('featuredPlayer');
+            if(fPlayer) {
+                fPlayer.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
+                go('videos', document.querySelector('button[onclick*="videos"]'));
+            }
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
